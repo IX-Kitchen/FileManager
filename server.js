@@ -8,34 +8,24 @@ const cors = require('cors')
 const bodyParser = require('body-parser');
 const archiver = require('archiver');
 const trash = require('trash');
-const multer = require('multer');
+const formidable = require('formidable')
 
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').load();
-  }
+}
 
 // Reuse express server
 const server = require('http').createServer(app);
 // Port
-const port = process.env.BACKEND_PORT || 8080;
+const port = process.env.PORT;
 
 const dir = process.env.DIR
+
 // CORS
 app.use(cors())
 // req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-const contentStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, dir)
-    },
-    filename: function (req, file, callback) {
-        callback(null, file.originalname);
-    }
-});
-
-const contentUpload = multer({ storage: contentStorage }).any();
 
 app.get("/test", function (req, res, next) {
     res.send("OK!")
@@ -97,11 +87,34 @@ app.post("/delete", (req, res, next) => {
     }
 })
 
-app.post("/upload", async function (req, res) {
-    contentUpload(req, res, async function (err) {
+app.post("/upload", function (req, res, next) {
+    var form = new formidable.IncomingForm()
+    form.uploadDir = dir
+    let tempPath
+    form.on('field', function (name, value) {
+        tempPath = path.resolve(dir,value)
+    });
+    form.on('end', function() {
         res.sendStatus(200)
     });
+    form.on('file', function(field, file) {
+        let temp = path.resolve(tempPath,file.name)
+        fs.rename(file.path, path.resolve(tempPath,file.name))
+    });
+    form.on('error', function(err) {
+        console.log(err)
+        next(err)
+    });
+    form.parse(req)
 });
+
+app.post("/createFolder", (req, res, next) => {
+    const tempPath = path.resolve(dir, req.body.path, req.body.name)
+    fs.mkdir(tempPath, err => {
+        if (err) console.log(err)
+        next(err)
+    })
+})
 
 // URL UI
 app.use(express.static(__dirname + '/ui/build'));

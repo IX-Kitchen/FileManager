@@ -38,7 +38,6 @@ export default class Explorer extends React.Component {
   }
 
   onDrop(files) {
-    console.log(files)
     this.props.handleUpload(files)
     this.setState({
       dropzoneActive: false
@@ -54,8 +53,8 @@ export default class Explorer extends React.Component {
         style={{ position: "relative", "height": "80%" }}
         onDrop={this.onDrop.bind(this)}
         onDragEnter={this.onDragEnter.bind(this)}
-        onDragLeave={this.onDragLeave.bind(this)}
-      >
+        onDragLeave={this.onDragLeave.bind(this)}>
+        
         {dropzoneActive && <div style={overlayStyle}>Drop files...</div>}
         <Grid container columns={3}>
           {struct && struct.map((item, index) => {

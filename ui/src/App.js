@@ -2,8 +2,9 @@ import React from 'react';
 import 'semantic-ui-css/semantic.min.css';
 import NavBar from './components/NavBar';
 import Explorer from './components/Explorer';
+import FolderForm from './components/FolderForm';
 import { BACK_ROOT } from './api-config'
-import { Divider } from 'semantic-ui-react'
+import { Divider, Portal, Button, Segment, Header } from 'semantic-ui-react'
 
 export default class AppList extends React.Component {
 
@@ -21,6 +22,7 @@ export default class AppList extends React.Component {
     this.handleDownload = this.handleDownload.bind(this)
     this.handleShow = this.handleShow.bind(this)
     this.handleUpload = this.handleUpload.bind(this)
+    this.handleAddFolder = this.handleAddFolder.bind(this)
   }
 
   componentDidMount() {
@@ -40,6 +42,23 @@ export default class AppList extends React.Component {
       currentIndex: [...currentIndex, index],
       struct: temp,
       nav: [...nav, currentFolder.name]
+    })
+  }
+
+  handleAddFolder(name) {
+    const path = this.state.nav.slice(1).join('')
+    const opts = {
+      method: 'post',
+      body: `name=${name}&path=${path}`,
+      headers: new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' })
+    }
+    fetch(`${BACK_ROOT}/createFolder`, opts).then(() => {
+      this.getData().then(struct => {
+        this.state.currentIndex.forEach(i => {
+          struct = struct[i].children
+        });
+        this.setState({ struct: struct })
+      })
     })
   }
 
@@ -65,7 +84,7 @@ export default class AppList extends React.Component {
       let temp = await response.json()
       return temp
     } catch (error) {
-      console.error(error);
+      console.error(error)
     }
   }
 
@@ -74,6 +93,8 @@ export default class AppList extends React.Component {
     files.forEach(element => {
       formData.append('uploader', element);
     });
+    const path = this.state.nav.slice(1).join('')
+    formData.append('path', path)
     const opts = {
       method: 'post',
       body: formData,
@@ -119,9 +140,19 @@ export default class AppList extends React.Component {
         <Divider />
         <NavBar nav={nav} handleNavClick={this.handleNavClick} />
         <Divider />
+        <Portal closeOnPortalMouseLeave trigger={
+          <Button size='mini' color='green'>
+            New folder
+          </Button>}>
+          <Segment style={{ left: '40%', position: 'fixed', top: '40%', zIndex: 1000 }}>
+            <Header>New folder's name</Header>
+            <FolderForm handleAddFolder={this.handleAddFolder} />
+          </Segment>
+        </Portal>
+        <Divider hidden/>
         <Explorer struct={struct} handleFolderClick={this.handleFolderClick}
           handleDelete={this.handleDelete} handleDownload={this.handleDownload}
-          handleShow={this.handleShow} handleUpload={this.handleUpload}/>
+          handleShow={this.handleShow} handleUpload={this.handleUpload} />
       </div>
     )
   }

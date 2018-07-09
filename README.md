@@ -15,17 +15,17 @@ git clone https://github.com/IX-Kitchen/FileManager.git
 cd FileManager/
 npm install
 ```
-2. Set the directory
+2. Set the environment variables
 
-Change the **DIR** variable in the file *.env.example* file and change its name to *.env*
-(Default variables are for local deployment)
+Change the **DIR** variable in the file *.env.example* with the absolute path of the directory you want to control, and the **PORT** variable with the port you want the server to listen at. Change the file's name to *.env*
 ```
 mv .env.example .env
 ```
+Set the same port in **REACT_APP_BACK_PORT** variable in the file *ui/.env.example* and change its name to *.env*
 
 3. Start the application
 
-Start backend server (Default port: 8080):
+At the root of the project, start the server:
 ```
 npm start
 ```
